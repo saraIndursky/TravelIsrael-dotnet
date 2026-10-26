@@ -33,7 +33,7 @@ namespace ProjectTrips.Controller
 
         // ==================== POST ====================
         [HttpPost]
-        [Authorize] // רק משתמש רשום יכול להעלות תמונה
+        [Authorize]
         public async Task<ActionResult<ImageDto>> PostAsync([FromForm] ImageCreateDto dto)
         {
             try
@@ -55,7 +55,7 @@ namespace ProjectTrips.Controller
                     stream.Close();
                 }
 
-                // מזהה היוצר נשלף מהטוקן
+                // The creator ID is read from the token
                 dto.CreatedByUserId = CurrentUserId;
 
                 var createdImage = await service.AddAsync(dto);
@@ -81,7 +81,7 @@ namespace ProjectTrips.Controller
 
         // ==================== GET ====================
         [HttpGet]
-        [AllowAnonymous] // כולם יכולים לראות רשימת תמונות
+        [AllowAnonymous]
         public async Task<ActionResult<List<ImageDto>>> GetAsync([FromQuery] ItemType? itemType, [FromQuery] int? placeId, [FromQuery] int? routeId)
         {
             var images = await service.GetAllAsync(itemType, placeId, routeId);
@@ -89,7 +89,7 @@ namespace ProjectTrips.Controller
         }
 
         [HttpGet("{id}", Name = "GetImageById")]
-        [AllowAnonymous] // כולם יכולים לראות תמונה ספציפית
+        [AllowAnonymous]
         public async Task<ActionResult<ImageDto>> GetByIdAsync(int id)
         {
             try
@@ -161,7 +161,7 @@ namespace ProjectTrips.Controller
 
         // ==================== PUT ====================
         [HttpPut("{imageId}/updateIsMain")]
-        [Authorize] // רק מנהל או יוצר התמונה יכול לעדכן
+        [Authorize] // Only an admin or the image creator can update
         public async Task<IActionResult> UpdateIsMainAsync(int imageId, [FromBody] UpdateIsMainImageDto dto)
         {
             try
@@ -185,7 +185,7 @@ namespace ProjectTrips.Controller
 
         // ==================== DELETE ====================
         [HttpDelete("{imageId}/delete")]
-        [Authorize] // רק מנהל או יוצר התמונה יכול למחוק
+        [Authorize] // Only an admin or the image creator can delete
         public async Task<IActionResult> DeleteAsync(int imageId)
         {
             try

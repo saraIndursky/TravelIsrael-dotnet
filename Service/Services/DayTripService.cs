@@ -140,7 +140,7 @@ namespace Service.Services
             if (dto.Items == null || !dto.Items.Any())
                 throw new ArgumentException("Day trip must contain at least one item");
 
-            // --- בדיקת משתמש ---
+            // --- Check the user ---
             var user = await repositoryUser.GetByIdAsync(dto.CreatedByUserId);
             if (user == null)
                 throw new InvalidOperationException("User does not exist");
@@ -151,20 +151,19 @@ namespace Service.Services
 
             await ValidateTripNotExistsAsync(0, dto.Items);
 
-            // --- Map ל‑Entity ---
             var dayTrip = mapper.Map<DayTrip>(dto);
 
-            // --- סטטוס אישור בהתאם למשתמש ---
+            // --- Approval status by user role ---
             if (user.Role == Role.Admin)
             {
-                // מנהל בוחר אם לשלוח לאישור או להשאיר כטיוטה
+                // An admin chooses whether to submit for approval or keep a draft
                 dayTrip.ApprovalStatus = dto.SendForApproval ? ApprovalStatus.Approved : ApprovalStatus.Draft;
                 dayTrip.ApprovedAt = dto.SendForApproval ? DateOnly.FromDateTime(DateTime.UtcNow) : null;
                 dayTrip.RejectReason = null;
             }
             else
             {
-                // משתמש רגיל → טיוטה או Pending לפי מה שהמשתמש רוצה
+                // A regular user gets a draft or Pending, as requested
                 dayTrip.ApprovalStatus = dto.SendForApproval ? ApprovalStatus.Pending : ApprovalStatus.Draft;
                 dayTrip.ApprovedAt = null;
                 dayTrip.RejectReason = null;
@@ -177,14 +176,12 @@ namespace Service.Services
             dayTrip.AverageRating = 0;
             dayTrip.RatingsCount = 0;
 
-            // --- שמירה במסד ---
             dayTrip = await repository.AddAsync(dayTrip);
 
-            // --- הוספת Items למסלול ---
             if (dto.Items.Any())
                 await dayTripItemService.ReplaceDayTripItemsAsync(dayTrip.Id, dto.Items);
 
-            // --- חישוב שדות מחושבים ---
+            // --- Computed fields ---
             return await RecalculateAndReturnAsync(dayTrip.Id);
         }
 
@@ -227,7 +224,7 @@ namespace Service.Services
 
             await repository.UpdateAsync(dayTrip);
 
-            // --------- עדכון הItems אם נשלחו  ----------
+            // --- Update the items if they were sent ---
             if (dto.Items != null && dto.Items.Any())
             {
                 await ValidateTripNotExistsAsync(dayTrip.Id, dto.Items);
@@ -265,7 +262,7 @@ namespace Service.Services
             if (dayTrip == null)
                 throw new KeyNotFoundException($"Day trip with id {id} not found");
 
-            // אם המשתמש רוצה להעלות מטיוטה ל-Pending
+            // The user wants to move the trip from draft to Pending
             if (newStatus == ApprovalStatus.Pending)
             {
                 if (dayTrip.ApprovalStatus != ApprovalStatus.Draft)
@@ -298,7 +295,7 @@ namespace Service.Services
             if (dayTrip == null)
                 throw new KeyNotFoundException($"Day trip with id {dayTripId} not found");
 
-            // אוספים את כל המקומות והמסלולים של הטיול
+            // Collect all places and routes in the trip
             var items = await dayTripItemService.GetByDayTripIdAsync(dayTripId);
 
             bool canApprove = true;
@@ -325,7 +322,7 @@ namespace Service.Services
 
             if (request.ApprovalStatus == ApprovalStatus.Approved && canApprove)
             {
-                // מעדכנים את כל המקומות והמסלולים שמחכים לאישור של היוצר
+                // Update the creator's places and routes that are waiting for approval
                 foreach (var item in items)
                 {
                     var place = item.Place;
@@ -381,7 +378,7 @@ namespace Service.Services
             if (dayTrip.CreatedByUserId != userId && user.Role != Role.Admin)
                 throw new UnauthorizedAccessException("Only admins or creator can update place image");
 
-            // מחיקת כל המקומות קודם
+            // Delete all places first
             var dayTripItems = await dayTripItemService.GetByDayTripIdAsync(dayTrip.Id);
             foreach (var item in dayTripItems)
                 await dayTripItemService.DeleteDayTripItemAsync(item.Id);
@@ -389,7 +386,6 @@ namespace Service.Services
             return await repository.DeleteAsync(id);
         }
 
-        // 💡 הוספה של מקום למסלול בצורה נקיה
         public async Task<CalculateComputedFieldsResult> AddItemToDayTripAsync(int userId, int dayTripId, DayTripItemToAdd item)
         {
             var dayTrip = await repository.GetByIdAsync(dayTripId);
@@ -419,7 +415,6 @@ namespace Service.Services
             return await RecalculateAndReturnAsync(dayTripId);
         }
 
-        // 💡 החלפה של כל המקומות במסלול
         public async Task<CalculateComputedFieldsResult> ReplaceDayTripItemsAsync(int userId, int dayTripId, List<DayTripItemToAdd> newItems)
         {
             var dayTrip = await repository.GetByIdAsync(dayTripId);
@@ -522,24 +517,19 @@ namespace Service.Services
             if (dayTrip == null)
                 throw new KeyNotFoundException("DayTrip not found");
 
-            // --- מביאים את ה-Items של המסלול ---
             var items = await dayTripItemService.GetByDayTripIdAsync(dayTripId);
 
-            // --- חישוב חתימה חדשה ---
+            // --- Compute a new signature ---
             var signature = CalculateSignatureFromItems(items);
             await ValidateTripSignature(dayTripId, signature);
             dayTrip.TripHash = signature;
 
-            // --- חישוב שדות מחושבים באמצעות Service ייעודי ---
             var computed = await dayTripCalculatedFieldsService.CalculateComputedFieldsAsync(dayTrip);
 
-            // ---מעדכנים את השדות המחושבים במסלול עצמו-- -
             ApplyComputedFields(dayTrip, computed);
 
-            // --- שמירה במסד ---
             await repository.UpdateAsync(dayTrip);
 
-            // --- מחזירים DTO עם התוצאה ---
             return new CalculateComputedFieldsResult
             {
                 DayTrip = mapper.Map<DayTripDetaileDto>(dayTrip),

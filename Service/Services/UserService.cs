@@ -47,23 +47,22 @@ namespace Service.Services
             if (existingUser != null)
             {
                 if (existingUser.IsActive)
-                    throw new InvalidOperationException("Email already exists"); // משתמש פעיל כבר קיים
+                    throw new InvalidOperationException("Email already exists");
 
-                // משתמש לא פעיל – בודקים סיסמה תואמת
+                // Inactive user: check that the password matches
                 if (!BCrypt.Net.BCrypt.Verify(dto.Password, existingUser.Password))
                     throw new InvalidOperationException("Password does not match for existing inactive user");
 
-                // מחזירים את המשתמש לפעיל
+                // Reactivate the user
                 existingUser.IsActive = true;
                 existingUser.FirstName = dto.FirstName;
                 existingUser.LastName = dto.LastName;
-                // אפשר לעדכן שדות נוספים אם רוצים
                 await repository.UpdateAsync(existingUser);
                 return mapper.Map<UserDto>(existingUser);
             }
 
             var user = mapper.Map<User>(dto);
-            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password); // 🔐 הצפנה
+            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             user.Role = Role.User;
             user.CreatedAt = DateOnly.FromDateTime(DateTime.Today);
             user.IsActive = true;
@@ -194,7 +193,7 @@ namespace Service.Services
 
         public async Task<bool> ReactivateUserAsync(int adminId, int userId)
         {
-            // בדיקה שהמבצע הוא מנהל
+            // Check that the caller is an admin
             var admin = await repository.GetByIdAsync(adminId);
             if (admin == null || admin.Role != Role.Admin)
                 throw new UnauthorizedAccessException("Only admins can reactivate users.");
@@ -206,7 +205,7 @@ namespace Service.Services
             if (user.IsActive)
                 throw new InvalidOperationException("User is already active.");
 
-            // מסמנים את המשתמש כפעיל
+            // Mark the user as active
             user.IsActive = true;
             await repository.UpdateAsync(user);
             return true;
@@ -214,7 +213,7 @@ namespace Service.Services
 
         public async Task<bool> DeleteUserAsync(int adminId, int userId)
         {
-            // קודם לבדוק אם המנהל באמת קיים ושהוא אכן Admin
+            // Check that the caller exists and is an admin
             var admin = await repository.GetByIdAsync(adminId);
             if (admin == null || admin.Role != Role.Admin)
                 throw new UnauthorizedAccessException("Only admins can delete users.");
@@ -223,11 +222,10 @@ namespace Service.Services
             if (user == null)
                 throw new KeyNotFoundException($"User with id {userId} not found.");
 
-            // בדיקה אם המשתמש כבר לא פעיל
+            // Check whether the user is already inactive
             if (!user.IsActive)
                 throw new InvalidOperationException("User is already inactive.");
 
-            // אם הכל תקין – מבצעים מחיקה
             user.IsActive = false;
             await repository.UpdateAsync(user);
             return true;

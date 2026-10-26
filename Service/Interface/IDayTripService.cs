@@ -13,22 +13,22 @@ namespace Service.Interface
 {
     public interface IDayTripService
     {
-        // --- מסלולים ---
+        // --- Routes ---
         Task<List<DayTripDetaileDto>> GetAllAsync();
         Task<List<DayTripDto>> GetTopThreeOrderByNumberOfViewsAsync();
         Task<List<DayTripDto>> GetFilteredTripsAsync(TripFilterDto filter);
         Task<DayTripDetaileDto> GetByIdAsync(int id);
-        // --- יצירה ועדכון ---
+        // --- Create and update ---
         Task<CalculateComputedFieldsResult> AddAsync(DayTripCreateDto dto);
         Task<CalculateComputedFieldsResult> UpdateAsync(int userId, int id, DayTripUpdateDto dto);
-        // --- דירוג ---
+        // --- Rating ---
         Task<DayTripDetaileDto> UpdateRatingAsync(int id, UpdateRatingDto dto);
-        // --- אישור מסלול ---
+        // --- Approval ---
         Task<DayTripDetaileDto> SetApprovalStatusAsync(int userId, int id, ApprovalStatus newStatus);
         Task<DayTripDetaileDto> ApproveDayTripWithItemsAsync(int adminId, int dayTripId, ApproveRequest request);
-        // --- מחיקה ---
+        // --- Deletion ---
         Task<bool> DeleteAsync(int userId, int id);
-        // --- ניהול מקומות במסלול ---
+        // --- Trip places ---
         Task<CalculateComputedFieldsResult> AddItemToDayTripAsync(int userId, int dayTripId, DayTripItemToAdd item);
         Task<CalculateComputedFieldsResult> ReplaceDayTripItemsAsync(int userId, int dayTripId, List<DayTripItemToAdd> newItems);
         Task<List<DayTripItemDto>> GetDayTripItemsAsync(int dayTripId);

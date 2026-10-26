@@ -1,20 +1,20 @@
 # TravelIsrael — .NET Backend
 
-API של **TravelIsrael** — פלטפורמה לגלישה, תכנון ויצירת טיולים בישראל.
+The API of **TravelIsrael**, a platform for browsing, planning and creating day trips in Israel.
 
-> **Repository זה:** [TravelIsrael-dotnet](https://github.com/saraIndursky/TravelIsrael-dotnet)  
+> **This repository:** [TravelIsrael-dotnet](https://github.com/saraIndursky/TravelIsrael-dotnet)  
 > **Frontend (React):** [TravelIsrael-react](https://github.com/saraIndursky/TravelIsrael-react)
 
-**פרויקט לימודי** — נבנה בזוגות במסגרת קורס.
+**Course project**, built by a team of two.
 
 ---
 
-## ארכיטקטורה
+## Architecture
 
 ```
 ┌─────────────────────┐       HTTPS / REST API       ┌─────────────────────┐
 │   React Frontend    │  ◄────────────────────────►  │  .NET 8 Backend     │
-│   TravelIsrael-react│       localhost:7081/api     │  (Repository זה)    │
+│   TravelIsrael-react│       localhost:7081/api     │  (this repository)  │
 └─────────────────────┘                              └──────────┬──────────┘
                                                                 │
                                                                 ▼
@@ -24,7 +24,7 @@ API של **TravelIsrael** — פלטפורמה לגלישה, תכנון ויצי
                                                      └─────────────────────┘
 ```
 
-| שכבה | פרויקט | תיאור |
+| Layer | Project | Description |
 |------|--------|--------|
 | **ProjectTrips** | Web API | Controllers, JWT, Swagger, CORS |
 | **Service** | Business logic | DTOs, AutoMapper, TokenService |
@@ -33,15 +33,15 @@ API של **TravelIsrael** — פלטפורמה לגלישה, תכנון ויצי
 
 ---
 
-## דרישות מקדימות
+## Prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - **SQL Server** / **LocalDB** — `(localdb)\MSSQLLocalDB`
-- [TravelIsrael-react](https://github.com/saraIndursky/TravelIsrael-react) — לצד ה-Client (אופציונלי לבדיקות API)
+- [TravelIsrael-react](https://github.com/saraIndursky/TravelIsrael-react) for the client (optional for API testing)
 
 ---
 
-## התקנה והרצה
+## Setup and running
 
 ### 1. Clone
 
@@ -50,48 +50,68 @@ git clone https://github.com/saraIndursky/TravelIsrael-dotnet.git
 cd TravelIsrael-dotnet
 ```
 
-### 2. מסד הנתונים (עם נתוני דוגמה)
+### 2. Database (with sample data)
 
-**אפשרות א' — שחזור מגיבוי (מומלץ)**
+**Option A — restore from backup (recommended)**
 
-קובץ הגיבוי נמצא ב-`Database/projectTripDB.bak` (כולל טיולים, מקומות, ביקורות ועוד).
+The backup file is `Database/projectTripDB.bak` (includes trips, places, reviews and more).
 
-1. פתחי **SSMS** והתחברי ל-`(localdb)\MSSQLLocalDB`
-2. **Restore Database** מהקובץ `Database/projectTripDB.bak`
-3. שם המסד: `ProjectTripsDB`
+1. Open **SSMS** and connect to `(localdb)\MSSQLLocalDB`
+2. **Restore Database** from `Database/projectTripDB.bak`
+3. Database name: `ProjectTripsDB`
 
-פירוט מלא: [Database/README.md](Database/README.md)
+Full details: [Database/README.md](Database/README.md)
 
-**אפשרות ב' — רק מבנה + Admin (בלי נתוני דוגמה)**
+**Option B — schema and admin user only (no sample data)**
 
 ```bash
-dotnet tool install --global dotnet-ef   # פעם ראשונה בלבד
+dotnet tool install --global dotnet-ef   # first time only
 dotnet ef database update --project ProjectTripsDB --startup-project ProjectTrips
 ```
 
-Connection String מוגדר ב-`ProjectTripsDB/Models/ProjectTripsDataBase.cs`.  
-אם SQL Server שלך רץ על שרת אחר — עדכני את השורה לפני שחזור/הרצת Migrations.
+The connection string is set in `ProjectTripsDB/Models/ProjectTripsDataBase.cs`.
+If your SQL Server runs elsewhere, update it before restoring or running migrations.
 
-**משתמש Admin:**
+**Admin user:**
 
-| שדה | ערך |
+| Field | Value |
 |-----|-----|
 | Email | `Admin@gmail.com` |
 | Password | `Admin#613` |
 
-### 3. הרצת השרת
+### 3. JWT key
+
+The signing key (`Jwt:Key`) is not stored in the code. Before the first run, set a key of at
+least 32 characters with User Secrets:
+
+```bash
+dotnet user-secrets set "Jwt:Key" "<random key, at least 32 characters>" --project ProjectTrips
+```
+
+The other JWT settings are in `ProjectTrips/appsettings.json`:
+
+```json
+"Jwt": {
+  "Key": "",
+  "Issuer": "ProjectTrips",
+  "Audience": "ProjectTrips",
+  "ExpireMinutes": 30
+}
+```
+
+### 4. Run the server
 
 ```bash
 dotnet run --project ProjectTrips
 ```
 
-| כתובת | שימוש |
+| Address | Use |
 |-------|--------|
-| `https://localhost:7081` | HTTPS (ברירת מחדל ל-Frontend) |
+| `https://localhost:7081` | HTTPS (default for the frontend) |
 | `http://localhost:5188` | HTTP |
-| `/swagger` | תיעוד API (Development) |
+| `/swagger` | API documentation (development) |
 
-### 4. Build
+### 5. Build
 
 ```bash
 dotnet build ProjectTrips.sln
@@ -99,72 +119,51 @@ dotnet build ProjectTrips.sln
 
 ---
 
-## חיבור ל-Frontend
+## Frontend connection
 
-ב-React (`TravelIsrael-react`) כתובת ה-API מוגדרת ב-`src/services/axios.ts`:
+In the React app (`TravelIsrael-react`), the API address is set in `src/services/axios.ts`:
 
 ```typescript
 const baseURL = 'https://localhost:7081/api';
 ```
 
-CORS מוגדר ב-`Program.cs` לאפשר `localhost:517x` (Vite).
+CORS in `Program.cs` allows `localhost:517x` (Vite).
 
 ---
 
-## API Controllers
+## API controllers
 
-| Controller | Route | תיאור |
+| Controller | Route | Description |
 |------------|-------|--------|
-| Auth | `api/Auth` | הרשמה, התחברות, Refresh Token |
-| User | `api/User` | פרופיל, שינוי סיסמה |
-| DayTrip | `api/DayTrip` | טיולים, סינון, המלצות, יצירה |
-| Lookups | `api/Lookups` | אזורים, סוגים, קושי, נגישות |
-| Suggestions | `api/Suggestions` | הצעות תחנות לבניית מסלול |
-| Place | `api/Place` | מקומות |
-| Route | `api/Route` | מסלולים |
-| Admin | `api/Admin` | סטטיסטיקות וניהול |
-| Review | `api/Review` | ביקורות |
-| Enum | `api/enums` | ערכי Enum (קושי, נגישות, travel-mode) |
+| Auth | `api/Auth` | Sign-up, login, refresh token |
+| User | `api/User` | Profile, password change |
+| DayTrip | `api/DayTrip` | Trips, filtering, recommendations, creation |
+| Lookups | `api/Lookups` | Regions, types, difficulty, accessibility |
+| Suggestions | `api/Suggestions` | Stop suggestions for the trip builder |
+| Place | `api/Place` | Places |
+| Route | `api/Route` | Routes |
+| Admin | `api/Admin` | Statistics and management |
+| Review | `api/Review` | Reviews |
+| Enum | `api/enums` | Enum values (difficulty, accessibility, travel mode) |
 
 ---
 
-## מבנה הפרויקט
+## Project structure
 
 ```
-ProjectTrips/
 ├── ProjectTrips.sln
-├── Database/               # גיבוי SQL (projectTripDB.bak)
+├── Database/               # SQL Server backup (projectTripDB.bak)
 ├── ProjectTrips/           # ASP.NET Core Web API
 │   ├── Controller/
 │   ├── Program.cs
 │   └── appsettings.json
-├── Service/                # שירותים + DTOs
-├── Repository/             # Entities + Repositories
-└── ProjectTripsDB/         # EF Core + Migrations
+├── Service/                # Services and DTOs
+├── Repository/             # Entities and repositories
+└── ProjectTripsDB/         # EF Core and migrations
 ```
 
 ---
 
-## JWT
+## Feedback
 
-הגדרות ב-`ProjectTrips/appsettings.json`. המפתח (`Jwt:Key`) לא נשמר בקוד, אלא ב-User Secrets.
-לפני ההרצה הראשונה מגדירים מפתח באורך 32 תווים לפחות:
-
-```bash
-dotnet user-secrets set "Jwt:Key" "<מפתח אקראי באורך 32 תווים לפחות>" --project ProjectTrips
-```
-
-```json
-"Jwt": {
-  "Key": "...",
-  "Issuer": "ProjectTrips",
-  "Audience": "ProjectTrips",
-  "ExpireMinutes": 30
-}
-```
-
----
-
-## תמיכה
-
-לשאלות או באגים — פתחי **Issue** ב-GitHub.
+For questions or bugs, open an **issue** on GitHub.

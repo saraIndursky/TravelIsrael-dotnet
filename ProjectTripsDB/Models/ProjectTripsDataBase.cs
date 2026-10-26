@@ -43,13 +43,13 @@ namespace ProjectTripsDB.Models
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // זה חשוב לקרוא למתודה האב
+            base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Image>()
-                .HasOne(pi => pi.User) // נניח ש-PlaceImage יש לו נכס ניווט ל-User
-                .WithMany(pr => pr.Images) // או להגדיר אוסף אם יש בו צורך
+                .HasOne(pi => pi.User)
+                .WithMany(pr => pr.Images)
                 .HasForeignKey(pi => pi.CreatedByUserId)
-                .OnDelete(DeleteBehavior.NoAction); // שנה את ההתנהגות למחיקה למגביל
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Region>()
                 .HasOne(r => r.ParentRegion)
@@ -79,7 +79,7 @@ namespace ProjectTripsDB.Models
                 FirstName = "Admin",
                 LastName = "Admin",
                 Email = "Admin@gmail.com",
-                Password = "Admin#613", // ⚠ עדיף להצפין!
+                Password = "Admin#613", // TODO: seed a hashed password
                 Role = Role.Admin,
                 CreatedAt = DateOnly.FromDateTime(DateTime.Today),
                 IsActive = true

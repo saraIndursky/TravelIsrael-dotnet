@@ -155,13 +155,13 @@ namespace Service.Services
         }
         public async Task<bool> DeleteAsync(int userId, int imageId)
         {
-            // קודם לבדוק אם המנהל באמת קיים ושהוא אכן Admin
+            // Check that the caller exists and is an admin
             var user = await repositoryUser.GetByIdAsync(userId);
             if (user == null)
                 throw new UnauthorizedAccessException("User does not exist");
 
             var image = await repository.GetByIdAsync(imageId);
-            if (image == null)// תמונה לא קיימת
+            if (image == null)
                 throw new KeyNotFoundException($"Image with id {imageId} not found.");
 
             if (user.Role != Role.Admin && image.CreatedByUserId != user.Id)

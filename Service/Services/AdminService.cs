@@ -27,7 +27,6 @@ namespace Service.Services
             this.mapper = mapper;
         }
 
-        // 🔹 החזרת כל המקומות במסלול לפי dayTripId
         public async Task<AdminStatsDto> GetStatsForAdminAsync(int adminId)
         {
             var user = await repositoryUser.GetByIdAsync(adminId);
@@ -59,7 +58,7 @@ namespace Service.Services
             {
                 Id = trip.Id,
                 Name = trip.Name,
-                Creator = trip.User.FirstName + " " + trip.User.LastName,   // או איך שזה נקרא אצלך
+                Creator = trip.User.FirstName + " " + trip.User.LastName,
                 Email = trip.User.Email,
                 Region = trip.Region != null ? trip.Region.RegionName : null,
                 Status = trip.ApprovalStatus.ToString().ToLower(),
@@ -67,7 +66,7 @@ namespace Service.Services
                 Type = trip.Type.TypeName,
                 Stops = trip.DayTripItems.Count,
                 Rating = trip.AverageRating ?? 0,
-                Saves = GenerateFakeSaves(trip.Id), // 👈 רנדומלי תקין..//trip.SavesCount,
+                Saves = GenerateFakeSaves(trip.Id), // TODO: replace with a real saves count
                 Views = trip.NumberOfViews,
                 Popularity = GetPopularity(trip.NumberOfViews, trip.ApprovalStatus)
             }).ToList();
@@ -82,7 +81,7 @@ namespace Service.Services
 
         private int GenerateFakeSaves(int tripId)
         {
-            var random = new Random(tripId); // seed לפי ID
+            var random = new Random(tripId); // seeded by ID so the value is stable
             return random.Next(0, 200);
         }
 
@@ -100,7 +99,7 @@ namespace Service.Services
             {
                 Id = trip.Id,
                 Name = trip.Name,
-                Creator = trip.User.FirstName + " " + trip.User.LastName,   // או איך שזה נקרא אצלך
+                Creator = trip.User.FirstName + " " + trip.User.LastName,
                 Email = trip.User.Email,
                 Region = trip.Region != null ? trip.Region.RegionName : "לא ידוע",
                 Difficulty = TranslateDifficulty(trip.Difficulty),
@@ -138,8 +137,8 @@ namespace Service.Services
             {
                 Id = place.Id,
                 Name = place.Name,
-                ItemType = "place", // או איך שזה נקרא אצלך
-                Creator = place.User.FirstName + " " + place.User.LastName,   // או איך שזה נקרא אצלך
+                ItemType = "place",
+                Creator = place.User.FirstName + " " + place.User.LastName,
                 Email = place.User.Email,
                 Image = fromStringToByte(place.Images.FirstOrDefault(i => i.IsMain)?.ImageUrl),
                 Region = place.Region != null ? place.Region.RegionName : null,
@@ -147,7 +146,7 @@ namespace Service.Services
                 RejectReason = place.RejectReason,
                 Type = place.Type.TypeName,
                 Rating = place.AverageRating ?? 0,
-                Saves = place.DayTripItems.Count, // 👈 רנדומלי תקין..//trip.SavesCount,
+                Saves = place.DayTripItems.Count,
                 Views = place.NumberOfViews,
                 Popularity = GetPopularity(place.NumberOfViews, place.ApprovalStatus),
                 CreateAt = place.CreatedAt,
@@ -157,8 +156,8 @@ namespace Service.Services
                 {
                     Id = route.Id,
                     Name = route.Name,
-                    ItemType = "route", // או איך שזה נקרא אצלך
-                    Creator = route.User.FirstName + " " + route.User.LastName,   // או איך שזה נקרא אצלך
+                    ItemType = "route",
+                    Creator = route.User.FirstName + " " + route.User.LastName,
                     Email = route.User.Email,
                     Image = fromStringToByte(route.Images.FirstOrDefault(i => i.IsMain)?.ImageUrl),
                     Region = route.Region != null ? route.Region.RegionName : null,
@@ -166,7 +165,7 @@ namespace Service.Services
                     RejectReason = route.RejectReason,
                     Type = route.Type.TypeName,
                     Rating = route.AverageRating ?? 0,
-                    Saves = route.DayTripItems.Count, // 👈 רנדומלי תקין..//trip.SavesCount,
+                    Saves = route.DayTripItems.Count,
                     Views = route.NumberOfViews,
                     Popularity = GetPopularity(route.NumberOfViews, route.ApprovalStatus),
                     CreateAt = route.CreatedAt,

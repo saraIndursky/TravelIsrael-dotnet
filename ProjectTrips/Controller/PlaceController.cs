@@ -36,7 +36,7 @@ namespace ProjectTrips.Controller
 
         // ==================== POST ====================
         [HttpPost]
-        [Authorize] // רק משתמש רשום יכול ליצור מקום
+        [Authorize]
         public async Task<ActionResult<PlaceDto>> CreateAsync([FromBody] PlaceCreateDto dto)
         {
             try
@@ -61,7 +61,7 @@ namespace ProjectTrips.Controller
 
         // ==================== GET ====================
         [HttpGet]
-        [Authorize] // רק למי שיש הרשאה לצפות בטיול
+        [Authorize] // Only users allowed to view the trip
         public async Task<ActionResult<List<PlaceDto>>> GetAllAsync()
         {
             return Ok(await service.GetAllAsync());
@@ -69,7 +69,7 @@ namespace ProjectTrips.Controller
 
 
         [HttpGet("{id}", Name = "GetPlaceById")]
-        [AllowAnonymous] // כולם יכולים לראות מקום ספציפי, גם ללא הרשמה אם מדובר בטיול מוכן
+        [AllowAnonymous] // Open to everyone, including guests viewing a published trip
         public async Task<ActionResult<PlaceDto>> GetByIdAsync(int id)
         {
             try
@@ -84,7 +84,7 @@ namespace ProjectTrips.Controller
 
         // ==================== PUT ====================
         [HttpPut("{id}")]
-        [Authorize] // עדכון – רק יוצר המקום או מנהל
+        [Authorize] // Only the place creator or an admin
         public async Task<IActionResult> UpdateProfilePlaceAsync(int id, [FromBody] UpdateProfilePlaceDto dto)
         {
             try
@@ -107,7 +107,7 @@ namespace ProjectTrips.Controller
         }
 
         [HttpPut("{id}/rating")]
-        [Authorize] // עדכון דירוג – רק משתמש רשום
+        [Authorize]
         public async Task<IActionResult> UpdateRatingAsync(int id, [FromBody] UpdateRatingDto dto)
         {
             try
@@ -126,7 +126,7 @@ namespace ProjectTrips.Controller
         }
 
         [HttpPut("{id}/approval")]
-        [Authorize] // אישור מקום – רק מנהל
+        [Authorize] // Admin only
         public async Task<ActionResult<PlaceDto>> SetApprovalAsync(int id, [FromBody] ApproveRequest request)
         {
             try
@@ -151,7 +151,7 @@ namespace ProjectTrips.Controller
 
         // ==================== DELETE ====================
         [HttpDelete("{id}")]
-        [Authorize] // מחיקה – רק יוצר המקום או מנהל
+        [Authorize] // Only the place creator or an admin
         public async Task<IActionResult> DeleteAsync(int id)
         {
             try

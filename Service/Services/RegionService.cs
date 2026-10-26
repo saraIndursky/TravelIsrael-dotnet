@@ -31,16 +31,16 @@ namespace Service.Services
                 throw new ArgumentException("Region name is required");
 
             if (await repository.ExistsByNameAsync(dto.RegionName))
-                throw new InvalidOperationException("Region name already exists"); // סוג מסלול כבר קיים
+                throw new InvalidOperationException("Region name already exists");
 
-            // בדיקה שההורה קיים
+            // Check that the parent exists
             if (dto.ParentRegionId.HasValue)
             {
                 var parent = await repository.GetByIdAsync(dto.ParentRegionId.Value);
                 if (parent == null)
                     throw new InvalidOperationException("Parent region does not exist");
 
-                // בדיקת לופ (לא קריטי אבל נקי)
+                // Check for a parent loop
                 if (await CreatesHierarchyLoopAsync(0, dto.ParentRegionId.Value))
                     throw new InvalidOperationException("Hierarchy loop detected");
             }
@@ -72,7 +72,7 @@ namespace Service.Services
             if (region == null)
                 throw new KeyNotFoundException("Region not found");
 
-            // בדיקה אם למשתמש יש טיולים (או תוכן אחר)
+            // Check whether the region has trips or other content
             if (
                 region.DayTrips != null && region.DayTrips.Any())
                 throw new InvalidOperationException("Cannot update region with active content.");
@@ -85,7 +85,7 @@ namespace Service.Services
                 region.RegionName = dto.RegionName;
             }
 
-            // בדיקת Parent
+            // Check the parent
             if (dto.ParentRegionId.HasValue)
             {
                 if (await CreatesHierarchyLoopAsync(id, dto.ParentRegionId.Value))
@@ -111,7 +111,7 @@ namespace Service.Services
         }
         public async Task<bool> DeleteAsync(int adminId, int id)
         {
-            // קודם לבדוק אם המנהל באמת קיים ושהוא אכן Admin
+            // Check that the caller exists and is an admin
             var admin = await repositoryUser.GetByIdAsync(adminId);
             if (admin == null || admin.Role != Role.Admin)
                 throw new UnauthorizedAccessException("Only admins can delete region.");
@@ -120,17 +120,16 @@ namespace Service.Services
             if (region == null)
                 throw new KeyNotFoundException($"Region with id {id} not found.");
 
-            // בדיקה אם למשתמש יש טיולים (או תוכן אחר)
+            // Check whether the region has trips or other content
             if ((region.DayTrips != null && region.DayTrips.Any()) ||
                 (region.Routes != null && region.Routes.Any()) ||
                 (region.Places != null && region.Places.Any()))
                 throw new InvalidOperationException("Cannot delete region with active content.");
 
-            // בדיקה אם יש תתי אזורים
+            // Check for sub-regions
             if (await repository.HasChildrenAsync(id))
                 throw new InvalidOperationException("Cannot delete region with sub regions.");
 
-            // אם הכל תקין – מבצעים מחיקה
             return await repository.DeleteAsync(id);
         }
         private async Task<bool> CreatesHierarchyLoopAsync(int regionId, int newParentId)

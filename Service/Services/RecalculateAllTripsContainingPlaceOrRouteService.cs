@@ -25,14 +25,14 @@ namespace Service.Services
 
         public async Task RecalculateAllTripsContainingRouteAsync(int routeId)
         {
-            // 1. שליפת כל ה-DayTripIds שמכילים את המסלול הזה
+            // 1. Get all DayTripIds that contain this place or route
             var tripIds =  (await repositoryDayTripItem
                 .GetByRouteIdAsync(routeId))
                 .Select(dti => dti.DayTripId)
                 .Distinct()
                 .ToList();
 
-            // 2. עדכון כל טיול באופן מבוקר
+            // 2. Recalculate each trip
             foreach (var id in tripIds)
             {
                 await RecalculateDayTripAsync(id);

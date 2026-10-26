@@ -37,7 +37,7 @@ namespace ProjectTrips.Controller
 
         // ================= ROUTE =================
 
-        // יצירת מסלול – דורש משתמש רשום
+        // Create a route (signed-in users)
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<RouteDto>> CreateAsync([FromBody] RouteCreateDto dto)
@@ -58,7 +58,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // קבלת כל המסלולים – דורש משתמש רשום
+        // Get all routes (signed-in users)
         [HttpGet]
         [Authorize]
         public async Task<ActionResult<List<RouteDto>>> GetAllAsync()
@@ -66,7 +66,7 @@ namespace ProjectTrips.Controller
             return Ok(await service.GetAllAsync());
         }
 
-        // קבלת מסלול לפי מזהה – פתוח לכולם
+        // Get a route by ID (open to everyone)
         [HttpGet("{id}", Name = "GetRouteById")]
         [AllowAnonymous]
         public async Task<ActionResult<RouteDto>> GetByIdAsync(int id)
@@ -81,7 +81,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // עדכון מסלול – דורש משתמש רשום
+        // Update a route (signed-in users)
         [HttpPut("{id}")]
         [Authorize]
         public async Task<IActionResult> UpdateAsync(int id, [FromBody] RouteUpdateDto dto)
@@ -105,7 +105,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // עדכון דירוג מסלול – דורש משתמש רשום
+        // Update a route rating (signed-in users)
         [HttpPut("{id}/rating")]
         [Authorize]
         public async Task<IActionResult> UpdateRatingAsync(int id, [FromBody] UpdateRatingDto dto)
@@ -125,7 +125,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // אישור מסלול – מנהל בלבד
+        // Approve a route (admin only)
         [HttpPut("{id}/approval")]
         [Authorize]
         public async Task<ActionResult<RouteDto>> SetApprovalAsync(int id, [FromBody] ApproveRequest request)
@@ -149,7 +149,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // מחיקת מסלול – דורש משתמש רשום
+        // Delete a route (signed-in users)
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> DeleteAsync(int id)
@@ -175,7 +175,7 @@ namespace ProjectTrips.Controller
 
         // ================= ROUTE POINTS =================
 
-        // קבלת נקודות מסלול – פתוח לכולם
+        // Get route points (open to everyone)
         [HttpGet("{routeId}/points")]
         [AllowAnonymous]
         public async Task<ActionResult<List<RoutePointDto>>> GetRoutePointsAsync(int routeId)
@@ -190,7 +190,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // הוספת נקודה למסלול – דורש משתמש רשום
+        // Add a point to a route (signed-in users)
         [HttpPost("{routeId}/points")]
         [Authorize]
         public async Task<IActionResult> AddPointToRouteAsync(int routeId, [FromBody] RoutePointCreateDto point)
@@ -206,7 +206,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // עדכון סדר נקודה – דורש משתמש רשום
+        // Update a point's order (signed-in users)
         [HttpPut("points/{routePointId}/order")]
         [Authorize]
         public async Task<IActionResult> UpdateOrderAsync(int routePointId, [FromQuery] int newOrder)
@@ -222,7 +222,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // מחיקת נקודה – דורש משתמש רשום
+        // Delete a point (signed-in users)
         [HttpDelete("points/{routePointId}")]
         [Authorize]
         public async Task<IActionResult> DeleteRoutePointAsync(int routePointId)
@@ -238,7 +238,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // החלפת כל נקודות – דורש משתמש רשום
+        // Replace all points (signed-in users)
         [HttpPut("{routeId}/points")]
         [Authorize]
         public async Task<IActionResult> ReplaceRoutePointsAsync(int routeId, [FromBody] List<RoutePointCreateDto> points)

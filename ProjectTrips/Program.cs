@@ -78,7 +78,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             )
         };
 
-        // ✅ אירועים מסודרים ללא כפילויות
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -112,7 +111,7 @@ builder.Services.AddRateLimiter(options =>
     {
         var userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // אם אין משתמש מחובר – נחסום או ניתן מפתח אנונימי
+        // Anonymous callers are limited by IP address
         if (string.IsNullOrEmpty(userId))
             userId = context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
 
@@ -197,20 +196,6 @@ builder.Services.AddAutoMapper(typeof(IMapper));
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 var app = builder.Build();
 
-// ------------------ בדיקת טבלאות EF ------------------
-//using (var context = new ProjectTripsDataBase())
-//{
-//    var entityTypes = context.Model.GetEntityTypes();
-//    foreach (var entityType in entityTypes)
-//    {
-//        var tableName = entityType.GetTableName();
-//        var schema = entityType.GetSchema();
-//        Console.WriteLine($"Entity: {entityType.Name}, Table: {tableName}, Schema: {schema}");
-//    }
-//}
-// --------------------------------------------------------
-
-//app.UseCors("AllowReact");
 app.UseCors("AllowVitePorts");
 
 // Configure the HTTP request pipeline.
@@ -228,23 +213,5 @@ app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
-
-//להצפנת הסיסמאות השמורות כבר בDB
-//using (var scope = app.Services.CreateScope())
-//{
-//    var context = scope.ServiceProvider.GetRequiredService<IContext>();
-
-//    var users = await context.Users.ToListAsync();
-
-//    foreach (var user in users)
-//    {
-//        if (!user.Password.StartsWith("$2")) // אם עדיין לא מוצפן
-//        {
-//            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-//        }
-//    }
-
-//    await context.save();
-//}
 
 app.Run();

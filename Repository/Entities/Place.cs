@@ -41,26 +41,26 @@ namespace Repository.Entities
         public ICollection<Review> Reviews { get; set; }
         
         // ==========================
-        // ✅ שדות מזג אוויר עתידיים
+        // Weather suitability fields
         // ==========================
 
-        // טמפרטורה במעלות צלזיוס
-        public double? MinTemperature { get; set; }    // טמפ' מינימום שהמקום מתאים לה
-        public double? MaxTemperature { get; set; }    // טמפ' מקסימום שהמקום מתאים לה
+        // Temperature in degrees Celsius
+        public double? MinTemperature { get; set; }    // minimum suitable temperature
+        public double? MaxTemperature { get; set; }    // maximum suitable temperature
 
-        // מהירות רוח מקסימלית (בקמ"ש או מטר/שנייה)
+        // Maximum wind speed
         public double? MaxWindSpeed { get; set; }
 
-        // אחוז גשם מקסימלי שהמקום מתאים לו (0-100)
+        // Maximum suitable chance of rain (0-100)
         public double? MaxRainProbability { get; set; }
 
-        // לחות מקסימלית שהמקום מתאים לה (אופציונלי)
+        // Maximum suitable humidity (optional)
         public double? MaxHumidity { get; set; }
 
-        // עננות (אופציונלי, אחוז 0-100)
+        // Cloud cover (optional, 0-100 percent)
         public double? MaxCloudCoverage { get; set; }
 
-        // האם המקום סובל גשם בכלל
+        // Whether the place is suitable in rain at all
         public bool AllowRain { get; set; } = true;
 
         public bool HasCommonWeather { get; set; }

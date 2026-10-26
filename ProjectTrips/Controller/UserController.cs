@@ -34,7 +34,7 @@ namespace ProjectTrips.Controller
 
         // ================= USERS =================
 
-        // קבלת כל המשתמשים – מנהל בלבד
+        // Get all users (admin only)
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<UserDto>>> GetAsync()
@@ -43,7 +43,7 @@ namespace ProjectTrips.Controller
             return Ok(users);
         }
 
-        // קבלת משתמש לפי מזהה – מנהל בלבד
+        // Get a user by ID (admin only)
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UserDto>> GetAsync(int id)
@@ -59,7 +59,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // עדכון פרופיל – רק המשתמש עצמו
+        // Update the profile (the user only)
         [HttpPut("profile")]
         [Authorize]
         public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfileDto dto)
@@ -79,7 +79,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // שינוי סיסמה – רק המשתמש עצמו
+        // Change the password (the user only)
         [HttpPut("password")]
         [Authorize]
         public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordDto dto)
@@ -103,7 +103,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // שינוי תפקיד – מנהל בלבד
+        // Change a role (admin only)
         [HttpPut("role/{targetId}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeRoleAsync(int targetId, [FromBody] ChangeRoleDto dto)
@@ -127,7 +127,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // הפעלת משתמש – מנהל בלבד
+        // Activate a user (admin only)
         [HttpPut("reactivate/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ReactivateAsync(int id)
@@ -155,7 +155,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // מחיקת משתמש – מנהל בלבד
+        // Delete a user (admin only)
         [HttpDelete("delete/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAsync(int id)
@@ -175,11 +175,11 @@ namespace ProjectTrips.Controller
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { error = ex.Message }); // 400 עם הסבר ברור
+                return BadRequest(new { error = ex.Message });
             }
             catch (Exception)
             {
-                return StatusCode(500, "Unexpected error"); // במקרה אחר
+                return StatusCode(500, "Unexpected error");
             }
         }
     }

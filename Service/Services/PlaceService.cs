@@ -49,7 +49,7 @@ namespace Service.Services
             else
                 dto.Description = "";
 
-            //לבדוק שהמיקום שהביאו תקין על פי גוגל מאפ לאחר ההתחברות (לגוגל מאפ)
+            // TODO: validate the location with Google Maps
             if (dto.Longitude == 0)
                 throw new ArgumentException("Place longitude is required");
 
@@ -58,11 +58,11 @@ namespace Service.Services
 
             var existingPlaceType = await repositoryType.GetByIdPlaceTypeAsync(dto.TypeId);
             if (existingPlaceType == null)
-                throw new InvalidOperationException("Place type is not exists"); //  סוג מקום לא קיים
+                throw new InvalidOperationException("Place type is not exists");
 
             var existingRegion = await repositoryRegion.GetByIdAsync(dto.RegionId);
             if (existingRegion == null)
-                throw new InvalidOperationException("Region is not exists"); //  איזור לא קיים
+                throw new InvalidOperationException("Region is not exists");
 
             if (dto.Price < 0)
                 throw new ArgumentException("Place price can not be negative");
@@ -75,10 +75,10 @@ namespace Service.Services
 
             var existingUser = await repositoryUser.GetByIdAsync(dto.CreatedByUserId);
             if (existingUser == null)
-                throw new InvalidOperationException("User is not exists"); //  משתמש לא קיים
+                throw new InvalidOperationException("User is not exists");
 
             // ===============================
-            // ✅ ולידציות מזג אוויר חדשות
+            // Weather validations
             // ===============================
             if (dto.MinTemperature.HasValue &&
                 (dto.MinTemperature < MIN_REAL_TEMP || dto.MinTemperature > MAX_REAL_TEMP))
@@ -109,17 +109,17 @@ namespace Service.Services
 
             var place = mapper.Map<Place>(dto);
 
-            // אם היוצר הוא מנהל או משתמש רגיל
+            // Approval status by user role
             if (existingUser.Role == Role.Admin)
             {
-                // מנהל בוחר אם לשלוח לאישור או להשאיר כטיוטה
+                // An admin chooses whether to submit for approval or keep a draft
                 place.ApprovalStatus = dto.SendForApproval ? ApprovalStatus.Approved : ApprovalStatus.Draft;
                 place.ApprovedAt = dto.SendForApproval ? DateOnly.FromDateTime(DateTime.UtcNow) : null;
                 place.RejectReason = null;
             }
             else
             {
-                // משתמש רגיל → טיוטה או Pending לפי מה שהמשתמש רוצה
+                // A regular user gets a draft or Pending, as requested
                 place.ApprovalStatus = dto.SendForApproval ? ApprovalStatus.Pending : ApprovalStatus.Draft;
                 place.ApprovedAt = null;
                 place.RejectReason = null;
@@ -159,7 +159,7 @@ namespace Service.Services
             if (user.Role != Role.Admin && user.Id != place.CreatedByUserId)
                 throw new UnauthorizedAccessException("Only admins or who create it can update place");
 
-            // בדיקה אם למשתמש יש טיולים (או תוכן אחר)
+            // Check whether the user has trips or other content
             if (place.Reviews != null && place.Reviews.Any())
                 throw new InvalidOperationException("Cannot update place with active content");
 
@@ -223,12 +223,12 @@ namespace Service.Services
 
             await repository.UpdateAsync(place);
 
-            // --- עדכון כל הטיולים שמכילים את המסלול הזה ---
+            // --- Recalculate every trip that contains this place ---
             await recalculateAllTripsContainingPlaceOrRouteService.RecalculateAllTripsContainingPlaceAsync(id);
 
             if (user.Role != Role.Admin)
             {
-                // רק המשתמש יוצר/מעדכן
+                // Only the creating or updating user
                 if (place.ApprovalStatus != ApprovalStatus.Draft)
                 {
                     place.ApprovalStatus = ApprovalStatus.Pending;
@@ -269,7 +269,7 @@ namespace Service.Services
             if (place == null)
                 throw new KeyNotFoundException($"Place with id {id} not found");
 
-            // אם המשתמש רוצה להעלות מטיוטה ל-Pending
+            // The user wants to move the place from draft to Pending
             if (newStatus == ApprovalStatus.Pending)
             {
                 if (place.ApprovalStatus != ApprovalStatus.Draft)
@@ -282,7 +282,7 @@ namespace Service.Services
                 place.ApprovedAt = null;
                 place.RejectReason = null;
             }
-            // אם המשתמש רוצה לאשר או לדחות
+            // The user wants to approve or reject
             else if (newStatus == ApprovalStatus.Approved || newStatus == ApprovalStatus.Rejected)
             {
                 if (user.Role != Role.Admin)
@@ -315,7 +315,7 @@ namespace Service.Services
         }
         public async Task<bool> DeleteAsync(int userId, int id)
         {
-            // קודם לבדוק אם המנהל באמת קיים ושהוא אכן Admin
+            // Check that the caller exists and is an admin
             var user = await repositoryUser.GetByIdAsync(userId);
             if (user == null)
                 throw new UnauthorizedAccessException("User is not exist");
@@ -327,13 +327,12 @@ namespace Service.Services
             if (user.Role != Role.Admin && user.Id != place.CreatedByUserId)
                 throw new UnauthorizedAccessException("Only admins or who create it can delete place");
 
-            // בדיקה אם למשתמש יש טיולים (או תוכן אחר)
+            // Check whether the user has trips or other content
             if (place.DayTripItems != null && place.DayTripItems.Any() ||
                 place.Images != null && place.Images.Any() ||
                 place.Reviews != null && place.Reviews.Any())
                 throw new InvalidOperationException("Cannot delete place with active content");
 
-            // אם הכל תקין – מבצעים מחיקה
             return await repository.DeleteAsync(id);
         }
     }

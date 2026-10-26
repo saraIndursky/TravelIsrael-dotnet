@@ -10,7 +10,7 @@ namespace ProjectTrips.Controller
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // הרשאה לפי טוקן
+    [Authorize]
     public class RegionController : ControllerBase
     {
         private readonly IRegionService service;
@@ -113,11 +113,11 @@ namespace ProjectTrips.Controller
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { error = ex.Message }); // 400 עם הסבר ברור
+                return BadRequest(new { error = ex.Message });
             }
             catch (Exception)
             {
-                return StatusCode(500, "Unexpected error"); // במקרה אחר
+                return StatusCode(500, "Unexpected error");
             }
         }
     }

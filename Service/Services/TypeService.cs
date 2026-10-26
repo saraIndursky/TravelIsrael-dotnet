@@ -58,7 +58,7 @@ namespace Service.Services
             var allTypes = await repository.GetAllAsync();
             var existingType = allTypes.FirstOrDefault(u => u.ContentType == type.ContentType && u.TypeName == type.TypeName);
             if (existingType != null)
-                throw new InvalidOperationException("Type name already exists"); // סוג מסלול כבר קיים
+                throw new InvalidOperationException("Type name already exists");
 
             var newType = mapper.Map<Repository.Entities.Type>(type);
             return mapper.Map<TypeDto>(await repository.AddAsync(newType));
@@ -74,7 +74,7 @@ namespace Service.Services
             if (exisitingType == null)
                 throw new KeyNotFoundException("Route type not found");
 
-            // בדיקה אם יש טיולים (או תוכן אחר)
+            // Check whether there are trips or other content of this type
             if (exisitingType.Routes != null && exisitingType.Routes.Any() ||
                 exisitingType.Places != null && exisitingType.Places.Any() ||
                 exisitingType.DayTrips != null && exisitingType.DayTrips.Any())
@@ -88,7 +88,7 @@ namespace Service.Services
 
         public async Task<bool> DeleteTypeAsync(int adminId, int id)
         {
-            // קודם לבדוק אם המנהל באמת קיים ושהוא אכן Admin
+            // Check that the caller exists and is an admin
             var admin = await repositoryUser.GetByIdAsync(adminId);
             if (admin == null || admin.Role != Role.Admin)
                 throw new UnauthorizedAccessException("Only admins can delete type.");
@@ -97,13 +97,12 @@ namespace Service.Services
             if (type == null)
                 throw new KeyNotFoundException($"Type with id {id} not found.");
 
-            // בדיקה אם למשתמש יש טיולים (או תוכן אחר)
+            // Check whether there are trips or other content of this type
             if (type.Routes != null && type.Routes.Any() ||
                 type.Places != null && type.Places.Any() ||
                 type.DayTrips != null && type.DayTrips.Any())
                 throw new InvalidOperationException("Cannot delete type with active content.");
 
-            // אם הכל תקין – מבצעים מחיקה
             return await repository.DeleteAsync(id);
         }
     }
