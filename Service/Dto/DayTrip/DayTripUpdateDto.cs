@@ -13,7 +13,7 @@ namespace Service.Dto.DayTrip
     {
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public byte[]? Image { get; set; } //התמונה כמחרוזת
+        public byte[]? Image { get; set; }
         public IFormFile? FileImage { get; set; }
         public string? ImageUrl { get; set; }
         public int? TypeId { get; set; }

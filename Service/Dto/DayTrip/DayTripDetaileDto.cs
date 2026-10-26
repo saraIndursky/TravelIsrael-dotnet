@@ -17,7 +17,7 @@ namespace Service.Dto.DayTrip
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public byte[]? Image { get; set; } //התמונה כמחרוזת
+        public byte[]? Image { get; set; }
         public double TotalDurationHours { get; set; }
         public double TotalLengthKM { get; set; }
         public TypeDto Type { get; set; }

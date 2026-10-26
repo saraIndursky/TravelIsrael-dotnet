@@ -8,7 +8,7 @@ namespace Service.Dto
 {
     public class EnumValueDto
     {
-        public int Id { get; set; }       // הערך המספרי של ה-enum
-        public string Name { get; set; }  // השם הקריא
+        public int Id { get; set; }       // numeric enum value
+        public string Name { get; set; }  // display name
     }
 }

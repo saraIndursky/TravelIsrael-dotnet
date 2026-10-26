@@ -42,7 +42,7 @@ namespace Service.Services
         }
 
         // ==========================
-        // תרגום שמות enums לעברית
+        // Hebrew display names for enums
         // ==========================
         private string GetAccessibilityName(Accessibility value)
         {

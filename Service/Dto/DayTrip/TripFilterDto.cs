@@ -20,8 +20,8 @@ namespace Service.Dto.DayTrip
         public double? Price { get; set; }
         public int? StopsCount { get; set; }
         //public bool? FamilyFriendly { get; set; }
-        public int Skip { get; set; } = 0;    // כמה טיולים לדלג
-        public int Take { get; set; } = 20;   // כמה טיולים לשלוח
+        public int Skip { get; set; } = 0;    // number of trips to skip
+        public int Take { get; set; } = 20;   // number of trips to return
         public string SortBy { get; set; }
         public string SortDirection { get; set; }
     }

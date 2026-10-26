@@ -45,7 +45,7 @@ namespace Service.Services
 
                 })
                 .OrderByDescending(x => x.Score)
-                .ThenByDescending(x => x.Trip.NumberOfViews)// Tie-breakers אם יש כמה עם אותו ציון, (נעדיף את הפופולריים יותר) נעשה שבירה
+                .ThenByDescending(x => x.Trip.NumberOfViews) // Tie-breaker: prefer the more popular trip
                 .ThenBy(x => x.Trip.Id)
                 .Take(request.Count)
                 .Select(x => new RecommendedTripDto
@@ -63,7 +63,7 @@ namespace Service.Services
             double score = 0;
             double total = 0;
 
-            // 🎯 אזור
+            // Region
             if (request.RegionId.HasValue && trip.Region != null)
             {
                 total += 3;
@@ -76,7 +76,7 @@ namespace Service.Services
                 else if (distance <= 4) score += 1;
             }
 
-            // 🎯 סוג טיול
+            // Trip type
             if (request.TypeId.HasValue)
             {
                 total += 2;
@@ -84,7 +84,7 @@ namespace Service.Services
                     score += 2;
             }
 
-            // 🎯 מחיר
+            // Price
             if (request.MaxPrice.HasValue)
             {
                 total += 2;
@@ -94,11 +94,11 @@ namespace Service.Services
                 else
                 {
                     double diff = trip.Price - request.MaxPrice.Value;
-                    score += Math.Max(0, 2 - diff / 50); // ירידה הדרגתית
+                    score += Math.Max(0, 2 - diff / 50); // gradual decrease
                 }
             }
 
-            // 🎯 זמן
+            // Duration
             if (request.AvailableHours.HasValue)
             {
                 total += 2;
@@ -107,7 +107,7 @@ namespace Service.Services
                 score += Math.Max(0, 2 - diff / 2);
             }
 
-            // 🎯 רמת קושי
+            // Difficulty
             if (request.Difficulty.HasValue)
             {
                 total += 1.5;
@@ -116,7 +116,7 @@ namespace Service.Services
                     score += 1.5;
             }
 
-            // 🎯 נגישות
+            // Accessibility
             if (request.Accessibility.HasValue)
             {
                 total += 1.5;
@@ -125,13 +125,13 @@ namespace Service.Services
                     score += 1.5;
             }
 
-            // 🎯 מזג אוויר
+            // Weather
             if (request.IsRainyDay.HasValue)
             {
                 total += 1;
 
                 if (request.IsRainyDay.Value && !trip.AllowRain)
-                    score += 0; // לא מתאים בכלל
+                    score += 0; // not suitable at all
                 else
                     score += 1;
             }
@@ -148,20 +148,20 @@ namespace Service.Services
         {
             double score = 0;
 
-            score += ScoreRating(trip);// מקסימום 20 נקודות, עם בוסט לאמינות
-            score += ScorePrice(trip, request);// מקסימום 20
-            score += ScoreDuration(trip, request);// מקסימום 25
-            score += ScoreType(trip, request);// 30 נקודות אם מתאים, 0 אם לא
-            score += ScorePopularity(trip);// מקסימום 15
-            score += ScoreWeather(trip, request);//מקסימום: 10 או מינוס 50 במקרה קיצון
-            score += ScoreRegion(trip, request);// מקסימום 40
+            score += ScoreRating(trip); // up to 20, boosted by rating confidence
+            score += ScorePrice(trip, request); // up to 20
+            score += ScoreDuration(trip, request); // up to 25
+            score += ScoreType(trip, request); // 30 on a match, 0 otherwise
+            score += ScorePopularity(trip); // up to 15
+            score += ScoreWeather(trip, request); // up to 10, or -50 in extreme weather
+            score += ScoreRegion(trip, request); // up to 40
 
             if (trip.CreatedAt > DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)))
             {
-                score += 5; // חדש = בוסט קטן
-            }// חדש +5
+                score += 5; // small boost for trips from the last month
+            }
 
-            return score;// סה"כ ≈ 245 נקודות המקסימום שאפשר לקבל
+            return score; // maximum is about 245
         }
         private double ScoreRating(DayTrip trip)
         {
@@ -169,7 +169,7 @@ namespace Service.Services
 
             double ratingScore = trip.AverageRating.Value * 20;
 
-            // אמינות
+            // Confidence grows with the number of ratings
             double confidence = Math.Min(trip.RatingsCount ?? 0, 50) / 50.0;
 
             return ratingScore * (0.5 + 0.5 * confidence);
@@ -182,9 +182,9 @@ namespace Service.Services
             double diff = trip.Price - request.MaxPrice.Value;
 
             if (diff <= 0)
-                return 20; // טוב
+                return 20;
 
-            return Math.Max(0, 20 - diff * 2); // יורד בהדרגה
+            return Math.Max(0, 20 - diff * 2); // gradual decrease
         }
 
         private double ScoreDuration(DayTrip trip, TripSearchRequestDto request)
@@ -213,7 +213,7 @@ namespace Service.Services
             if (!request.IsRainyDay.HasValue) return 0;
 
             if (request.IsRainyDay.Value && !trip.AllowRain)
-                return -50; // פסילה כמעט מוחלטת
+                return -50; // almost disqualifies the trip
 
             if (trip.HasCommonWeather)
                 return 10;
@@ -221,7 +221,7 @@ namespace Service.Services
             return 0;
         }
 
-        //פונקציה שמביאה את כל השרשרת
+        // Returns the full ancestor chain of a region
         private List<int> GetAncestors(int regionId)
         {
             var result = new List<int>();
@@ -247,7 +247,7 @@ namespace Service.Services
             return result;
         }
 
-        //מציאת “מרחק בין אזורים”
+        // Distance between two regions in the region tree
         private int GetDistanceBetweenRegions(int regionAId, int regionBId)
         {
             var ancestorsA = GetAncestors(regionAId);
@@ -259,7 +259,7 @@ namespace Service.Services
                 {
                     if (ancestorsA[i] == ancestorsB[j])
                     {
-                        return i + j; // המרחק הכולל
+                        return i + j;
                     }
                 }
             }
@@ -275,18 +275,18 @@ namespace Service.Services
             int distance = GetDistanceBetweenRegions(trip.Region.Id, request.RegionId.Value);
 
             if (distance == 0)
-                return 40; // בדיוק אותו אזור
+                return 40; // same region
 
             if (distance == 1)
-                return 35; // ילד / אבא
+                return 35; // parent or child
 
             if (distance == 2)
-                return 30; // אחים (🔥 בני ברק ↔ רמת גן)
+                return 30; // siblings (e.g. Bnei Brak and Ramat Gan)
 
             if (distance <= 4)
-                return 20; // אזור רחב (גוש דן וכו')
+                return 20; // wider area (e.g. Gush Dan)
 
-            return 5; // רחוק
+            return 5; // far away
         }
     }
 }

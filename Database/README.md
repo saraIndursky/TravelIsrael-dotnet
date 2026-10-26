@@ -1,21 +1,21 @@
-# גיבוי מסד הנתונים
+# Database backup
 
-קובץ **`projectTripDB.bak`** — גיבוי SQL Server של `ProjectTripsDB` עם כל נתוני הדוגמה (טיולים, מקומות, ביקורות וכו').
+**`projectTripDB.bak`** is a SQL Server backup of `ProjectTripsDB` with all the sample data (trips, places, reviews, etc.).
 
-## שחזור ב-SSMS (מומלץ)
+## Restore with SSMS (recommended)
 
-1. פתחי **SQL Server Management Studio**
-2. התחברי ל-`(localdb)\MSSQLLocalDB`
-3. אם קיים DB בשם `ProjectTripsDB` — מחקי אותו (קליק ימני → Delete)
-4. קליק ימני על **Databases** → **Restore Database...**
-5. **Device** → **Add** → בחרי את `Database/projectTripDB.bak` מתוך ה-repo
-6. **Database** → שם: `ProjectTripsDB`
-7. **Options** → סמני **Overwrite the existing database**
+1. Open **SQL Server Management Studio**
+2. Connect to `(localdb)\MSSQLLocalDB`
+3. If a database named `ProjectTripsDB` already exists, delete it (right-click → Delete)
+4. Right-click **Databases** → **Restore Database...**
+5. **Device** → **Add** → select `Database/projectTripDB.bak` from the repository
+6. **Database** → name: `ProjectTripsDB`
+7. **Options** → check **Overwrite the existing database**
 8. **OK**
 
-## שחזור ב-T-SQL
+## Restore with T-SQL
 
-החליפי את הנתיב לנתיב המלא של הקובץ אצלך:
+Replace the path with the full path of the file on your machine:
 
 ```sql
 RESTORE DATABASE ProjectTripsDB
@@ -25,18 +25,18 @@ MOVE N'ProjectTripsDB' TO N'C:\Users\<USER>\ProjectTripsDB.mdf',
 MOVE N'ProjectTripsDB_log' TO N'C:\Users\<USER>\ProjectTripsDB_log.ldf';
 ```
 
-> אם שמות ה-logical files שונים, הריצי קודם:
+> If the logical file names are different, run this first:
 > `RESTORE FILELISTONLY FROM DISK = N'...\projectTripDB.bak'`
 
-## אחרי השחזור
+## After restoring
 
 ```bash
 dotnet run --project ProjectTrips
 ```
 
-**לא** צריך להריץ `dotnet ef database update` — הגיבוי כבר כולל את כל הטבלאות והנתונים.
+There is **no** need to run `dotnet ef database update`; the backup already includes all tables and data.
 
-**Admin (אם קיים בגיבוי):**
+**Admin (if present in the backup):**
 
 | Email | Password |
 |-------|----------|

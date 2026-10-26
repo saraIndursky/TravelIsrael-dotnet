@@ -14,8 +14,8 @@ namespace Repository.Entities
         public int RouteId { get; set; }
         public virtual Route Route { get; set; }
         public int OrderInRoute { get; set; }
-        public string Title { get; set; }   // "ירידה בשביל האדום"
-        public string Description { get; set; }  // פירוט מה רואים/עושים
+        public string Title { get; set; }   // e.g. "Descent on the red trail"
+        public string Description { get; set; }  // what there is to see or do
         //public string? NavigationInstruction { get; set; }
         public double? EstimatedStayMinutes { get; set; }
         public bool IsStartPoint { get; set; }

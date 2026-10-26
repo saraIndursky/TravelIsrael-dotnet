@@ -12,7 +12,7 @@ namespace ProjectTrips.Controller
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous] // כל הפעולות כאן פתוחות כי זה התחברות והרשמה
+    [AllowAnonymous] // Login and sign-up are open to everyone
     public class AuthController : ControllerBase
     {
         private readonly IUserService service;
@@ -133,7 +133,6 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // קבלת משתמש
         [HttpGet("me")]
         [Authorize]
         public async Task<ActionResult<UserResponseDto>> GetAsync()

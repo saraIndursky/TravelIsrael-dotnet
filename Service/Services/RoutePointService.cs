@@ -22,7 +22,6 @@ namespace Service.Services
             this.mapper = mapper;
         }
 
-        // 🔹 החזרת כל המקומות במסלול לפי routeId
         public async Task<List<RoutePointDto>> GetByRouteIdAsync(int routeId)
         {
             var points = await repository.GetByRouteIdAsync(routeId);
@@ -54,7 +53,7 @@ namespace Service.Services
             if (newOrder == oldOrder)
                 return mapper.Map<RoutePointDto>(routePoint);
 
-            // 🔹 הזזה למטה
+            // Move down
             if (newOrder > oldOrder)
             {
                 foreach (var rp in routePoints
@@ -63,7 +62,7 @@ namespace Service.Services
                     rp.OrderInRoute--;
                 }
             }
-            // 🔹 הזזה למעלה
+            // Move up
             else
             {
                 foreach (var rp in routePoints
@@ -89,7 +88,7 @@ namespace Service.Services
             if (!points.Any())
                 return;
 
-            // קודם מאפסים הכל
+            // Reset everything first
             foreach (var p in points)
             {
                 p.IsStartPoint = false;
@@ -108,16 +107,14 @@ namespace Service.Services
             if (routePoint == null)
                 throw new KeyNotFoundException($"Route point with id {id} not found");
 
-            // אם הכל תקין – מבצעים מחיקה
             await repository.DeleteAsync(id);
 
-            // לאחר המחיקה – לעדכן סדר מחדש
+            // Reorder the remaining points
             await ReorderRoutePointsAsync(routePoint.RouteId);
 
             return true;
         }
 
-        // ----------- פונקציה עזר לסידור מחדש של המקומות ----------------
         private async Task ReorderRoutePointsAsync(int routeId)
         {
             var routePoints = await repository.GetByRouteIdAsync(routeId);
@@ -132,7 +129,7 @@ namespace Service.Services
             await FixStartAndEndAsync(routeId);
         }
 
-        // 💡 פונקציה פרטית להוספת רשימת נקודות למסלול עם סדר
+        // Adds a list of points to a route in order
         private async Task AddRoutePointsAsync(int routeId, List<RoutePointCreateDto> points)
         {
             var routePoints = await repository.GetByRouteIdAsync(routeId);
@@ -154,7 +151,7 @@ namespace Service.Services
             await FixStartAndEndAsync(routeId);
         }
 
-        // 💡 עדכון מסלול עם רשימת מקומות חדשה (כולל מחיקה של הישנים)
+        // Replaces a route's points with a new list, deleting the old ones
         public async Task<List<RoutePointDto>> ReplaceRoutePointsAsync(int routeId, List<RoutePointCreateDto> pointIds)
         {
             if (pointIds == null || !pointIds.Any())
@@ -162,14 +159,12 @@ namespace Service.Services
 
             await repository.DeleteByRouteIdAsync(routeId);
 
-            // הכנסת החדשים
             await AddRoutePointsAsync(routeId, pointIds);
 
             var points = await repository.GetByRouteIdAsync(routeId);
             return mapper.Map<List<RoutePointDto>>(points);
         }
 
-        // 💡 הוספת מקום בודד למסלול
         public async Task<RoutePointDto> AddPointToRouteAsync(int routeId, RoutePointCreateDto point)
         {
             var existingRoute = await GetByRouteIdAsync(routeId);

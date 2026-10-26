@@ -25,7 +25,6 @@ namespace Service.Services
             this.mapper = mapper;
         }
 
-        // 🔹 החזרת כל המקומות במסלול לפי dayTripId
         public async Task<List<DayTripItem>> GetByDayTripIdAsync(int dayTripId)
         {
             return await repository.GetByDayTripIdAsync(dayTripId);
@@ -59,7 +58,7 @@ namespace Service.Services
             if (newOrder > items.Count)
                 newOrder = items.Count;
 
-            // הזזה למטה
+            // Move down
             if (newOrder > oldOrder)
             {
                 var affectedItems = items
@@ -71,7 +70,7 @@ namespace Service.Services
                     await repository.UpdateAsync(item);
                 }
             }
-            // הזזה למעלה
+            // Move up
             else
             {
                 var affectedItems = items
@@ -84,7 +83,7 @@ namespace Service.Services
                 }
             }
 
-            // עדכון הפריט עצמו
+            // Update the item itself
             dayTripItem.OrderInTrip = newOrder;
             await repository.UpdateAsync(dayTripItem);
 
@@ -99,16 +98,14 @@ namespace Service.Services
             if (dayTripItem == null)
                 throw new KeyNotFoundException($"Route place with id {id} not found");
 
-            // אם הכל תקין – מבצעים מחיקה
             await repository.DeleteAsync(id);
 
-            // לאחר המחיקה – לעדכן סדר מחדש
+            // Reorder the remaining items
             await ReorderDayTripItemsAsync(dayTripItem.DayTripId);
 
             return true;
         }
 
-        // ----------- פונקציה עזר לסידור מחדש של המקומות ----------------
         private async Task ReorderDayTripItemsAsync(int dayTripId)
         {
             var dayTripItems = await repository.GetByDayTripIdAsync(dayTripId);
@@ -120,7 +117,7 @@ namespace Service.Services
             }
         }
 
-        // 💡 פונקציה פרטית להוספת רשימת מקומות למסלול עם סדר
+        // Adds a list of places to a trip in order
         private async Task AddDayTripItemsAsync(int dayTripId, List<DayTripItemToAdd> items)
         {
             var currentItems = await repository.GetByDayTripIdAsync(dayTripId);
@@ -155,7 +152,7 @@ namespace Service.Services
             }
         }
 
-        // 💡 עדכון מסלול עם רשימת מקומות חדשה (כולל מחיקה של הישנים)
+        // Replaces a trip's places with a new list, deleting the old ones
         public async Task<List<DayTripItemDto>> ReplaceDayTripItemsAsync(int dayTripId, List<DayTripItemToAdd> items)
         {
             if (items == null || !items.Any())
@@ -174,17 +171,14 @@ namespace Service.Services
             (i.ItemType == ItemType.Route && !i.RouteId.HasValue)))
                 throw new InvalidOperationException("Invalid item data");
 
-            // מחיקת הישנים
             await repository.DeleteByDayTripIdAsync(dayTripId);
 
-            // הכנסת החדשים
             await AddDayTripItemsAsync(dayTripId, items);
 
             var itemsNew = await repository.GetByDayTripIdAsync(dayTripId);
             return mapper.Map<List<DayTripItemDto>>(itemsNew);
         }
 
-        // 💡 הוספת מקום בודד למסלול
         public async Task<DayTripItemDto> AddItemToDayTripAsync(int dayTripId, DayTripItemToAdd item)
         {
             var existingDayTrip = await repository.GetByDayTripIdAsync(dayTripId);

@@ -81,7 +81,7 @@ namespace Service.Services
 
             var existingUser = await repositoryUser.GetByIdAsync(dto.CreatedByUserId);
             if (existingUser == null)
-                throw new InvalidOperationException("User is not exists"); //  משתמש לא קיים
+                throw new InvalidOperationException("User is not exists");
 
             if (dto.MinTemperature.HasValue &&
                 (dto.MinTemperature < MIN_REAL_TEMP || dto.MinTemperature > MAX_REAL_TEMP))
@@ -111,17 +111,17 @@ namespace Service.Services
 
             var route = mapper.Map<Route>(dto);
 
-            // אם היוצר הוא מנהל או משתמש רגיל
+            // Approval status by user role
             if (existingUser.Role == Role.Admin)
             {
-                // מנהל בוחר אם לשלוח לאישור או להשאיר כטיוטה
+                // An admin chooses whether to submit for approval or keep a draft
                 route.ApprovalStatus = dto.SendForApproval ? ApprovalStatus.Approved : ApprovalStatus.Draft;
                 route.ApprovedAt = dto.SendForApproval ? DateOnly.FromDateTime(DateTime.UtcNow) : null;
                 route.RejectReason = null;
             }
             else
             {
-                // משתמש רגיל → טיוטה או Pending לפי מה שהמשתמש רוצה
+                // A regular user gets a draft or Pending, as requested
                 route.ApprovalStatus = dto.SendForApproval ? ApprovalStatus.Pending : ApprovalStatus.Draft;
                 route.ApprovedAt = null;
                 route.RejectReason = null;
@@ -136,8 +136,7 @@ namespace Service.Services
 
             route = await repository.AddAsync(route);
 
-            // עכשיו צורכים את RoutePoint
-            // אם נשלחו נקודות
+            // Add the route points, if any were sent
             if (dto.Points != null && dto.Points.Any())
             {
                 await routePointService.ReplaceRoutePointsAsync(route.Id, dto.Points);
@@ -241,18 +240,18 @@ namespace Service.Services
 
             await repository.UpdateAsync(route);
 
-            // --------- עדכון המקומות אם נשלחו PlaceIds ----------
+            // --- Replace the points if they were sent ---
             if (dto.Points != null && dto.Points.Any())
             {
-                await routePointService.ReplaceRoutePointsAsync(route.Id, dto.Points); // מחליף את המקומות ומחשב סדר מחדש
+                await routePointService.ReplaceRoutePointsAsync(route.Id, dto.Points); // also recalculates the order
             }
 
-            // --- עדכון כל הטיולים שמכילים את המסלול הזה ---
+            // --- Recalculate every trip that contains this route ---
             await recalculateAllTripsContainingPlaceOrRouteService.RecalculateAllTripsContainingRouteAsync(id);
 
             if (user.Role != Role.Admin)
             {
-                // רק המשתמש יוצר/מעדכן
+                // Only the creating or updating user
                 if (route.ApprovalStatus != ApprovalStatus.Draft)
                 {
                     route.ApprovalStatus = ApprovalStatus.Pending;
@@ -295,7 +294,7 @@ namespace Service.Services
             if (route == null)
                 throw new KeyNotFoundException($"Route with id {id} not found");
 
-            // אם המשתמש רוצה להעלות מטיוטה ל-Pending
+            // The user wants to move the route from draft to Pending
             if (newStatus == ApprovalStatus.Pending)
             {
                 if (route.ApprovalStatus != ApprovalStatus.Draft)
@@ -308,7 +307,7 @@ namespace Service.Services
                 route.ApprovedAt = null;
                 route.RejectReason = null;
             }
-            // אם המשתמש רוצה לאשר או לדחות
+            // The user wants to approve or reject
             else if (newStatus == ApprovalStatus.Approved || newStatus == ApprovalStatus.Rejected)
             {
                 if (user.Role != Role.Admin)
@@ -353,7 +352,7 @@ namespace Service.Services
             if (route.CreatedByUserId != userId && user.Role != Role.Admin)
                 throw new UnauthorizedAccessException("Only admins or creator can update place image");
 
-            // מחיקת כל המקומות קודם
+            // Delete all points first
             var routePoints = await routePointService.GetByRouteIdAsync(route.Id);
             foreach (var rp in routePoints)
                 await routePointService.DeleteRoutePointAsync(rp.Id);
@@ -361,7 +360,6 @@ namespace Service.Services
             return await repository.DeleteAsync(id);
         }
         
-        // 💡 הוספה של מקום למסלול בצורה נקיה
         public async Task<RoutePointDto> AddPointToRouteAsync(int userId, int routeId, RoutePointCreateDto point)
         {
             var route = await repository.GetByIdAsync(routeId);
@@ -378,7 +376,6 @@ namespace Service.Services
             return await routePointService.AddPointToRouteAsync(routeId, point);
         }
 
-        // 💡 החלפה של כל המקומות במסלול
         public async Task<List<RoutePointDto>> ReplaceRoutePointsAsync(int userId, int routeId, List<RoutePointCreateDto> newPoints)
         {
             var route = await repository.GetByIdAsync(routeId);

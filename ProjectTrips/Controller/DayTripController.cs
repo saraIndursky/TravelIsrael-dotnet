@@ -40,7 +40,7 @@ namespace ProjectTrips.Controller
         // ================= DayTrip =================
 
         [HttpPost]
-        [Authorize] // יצירת טיול דורש Authentication
+        [Authorize]
         public async Task<ActionResult<CalculateComputedFieldsResult>> CreateAsync([FromForm] DayTripCreateDto dto)
         {
             try
@@ -79,7 +79,7 @@ namespace ProjectTrips.Controller
         }
 
         [HttpGet]
-        [AllowAnonymous] // כל אחד יכול לראות רשימת טיולים
+        [AllowAnonymous]
         public async Task<ActionResult<List<DayTripDetaileDto>>> GetAllAsync()
         {
             return Ok(await service.GetAllAsync());
@@ -101,7 +101,7 @@ namespace ProjectTrips.Controller
         }
 
         [HttpGet("{id}", Name = "GetDayTripById")]
-        [AllowAnonymous] // כל אחד יכול לראות פרטי טיול
+        [AllowAnonymous]
         public async Task<ActionResult<DayTripDetaileDto>> GetByIdAsync(int id)
         {
             try
@@ -247,7 +247,7 @@ namespace ProjectTrips.Controller
         // ================= DayTrip Items =================
 
         [HttpGet("{dayTripId}/items")]
-        [AllowAnonymous] // כל אחד יכול לראות פרטי פריטים בטיול
+        [AllowAnonymous]
         public async Task<ActionResult<List<DayTripItemDto>>> GetDayTripItemsAsync(int dayTripId)
         {
             try
@@ -353,7 +353,7 @@ namespace ProjectTrips.Controller
         }
 
 
-        // פונ' שמחזירה את חמשת הטיולים העונים על דרישות הלקוח על פי הדירוג הטוב ביותר
+        // Returns the five best-scoring trips that match the user's request
         [HttpPost("recommend")]
         public async Task<ActionResult<List<RecommendedTripDto>>> GetBestTrips([FromBody] TripSearchRequestDto request)
         {

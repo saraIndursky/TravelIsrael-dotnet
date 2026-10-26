@@ -31,7 +31,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // יצירת תגובה – דורש משתמש מחובר
+        // Create a review (signed-in users)
         [HttpPost]
         [Authorize]
         [EnableRateLimiting("reviews")]
@@ -65,7 +65,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // ===== צפייה בתגובות - פתוח לכולם =====
+        // ===== Reading reviews is open to everyone =====
         [HttpGet("place/{placeId}")]
         [AllowAnonymous]
         public async Task<ActionResult> GetReviewsForPlaceAsync(int placeId)
@@ -111,7 +111,7 @@ namespace ProjectTrips.Controller
             }
         }
 
-        // מחיקת תגובה – דורש משתמש מחובר
+        // Delete a review (signed-in users)
         [HttpDelete("{reviewId}")]
         [Authorize]
         public async Task<IActionResult> DeleteReviewAsync(int reviewId)
