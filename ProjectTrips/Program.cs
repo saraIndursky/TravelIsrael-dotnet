@@ -55,6 +55,12 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+if (string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Key"]))
+{
+    throw new InvalidOperationException(
+        "Jwt:Key is not set. Run: dotnet user-secrets set \"Jwt:Key\" \"<at least 32 characters>\" --project ProjectTrips");
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {

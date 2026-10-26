@@ -2,8 +2,8 @@
 
 API של **TravelIsrael** — פלטפורמה לגלישה, תכנון ויצירת טיולים בישראל.
 
-> **Repository זה:** [TravelIsrael-dotnet](https://github.com/injosh2026/TravelIsrael-dotnet)  
-> **Frontend (React):** [TravelIsrael-react](https://github.com/injosh2026/TravelIsrael-react)
+> **Repository זה:** [TravelIsrael-dotnet](https://github.com/saraIndursky/TravelIsrael-dotnet)  
+> **Frontend (React):** [TravelIsrael-react](https://github.com/saraIndursky/TravelIsrael-react)
 
 **פרויקט לימודי** — נבנה בזוגות במסגרת קורס.
 
@@ -37,7 +37,7 @@ API של **TravelIsrael** — פלטפורמה לגלישה, תכנון ויצי
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - **SQL Server** / **LocalDB** — `(localdb)\MSSQLLocalDB`
-- [TravelIsrael-react](https://github.com/injosh2026/TravelIsrael-react) — לצד ה-Client (אופציונלי לבדיקות API)
+- [TravelIsrael-react](https://github.com/saraIndursky/TravelIsrael-react) — לצד ה-Client (אופציונלי לבדיקות API)
 
 ---
 
@@ -46,7 +46,7 @@ API של **TravelIsrael** — פלטפורמה לגלישה, תכנון ויצי
 ### 1. Clone
 
 ```bash
-git clone https://github.com/injosh2026/TravelIsrael-dotnet.git
+git clone https://github.com/saraIndursky/TravelIsrael-dotnet.git
 cd TravelIsrael-dotnet
 ```
 
@@ -147,7 +147,12 @@ ProjectTrips/
 
 ## JWT
 
-הגדרות ב-`ProjectTrips/appsettings.json`:
+הגדרות ב-`ProjectTrips/appsettings.json`. המפתח (`Jwt:Key`) לא נשמר בקוד, אלא ב-User Secrets.
+לפני ההרצה הראשונה מגדירים מפתח באורך 32 תווים לפחות:
+
+```bash
+dotnet user-secrets set "Jwt:Key" "<מפתח אקראי באורך 32 תווים לפחות>" --project ProjectTrips
+```
 
 ```json
 "Jwt": {
