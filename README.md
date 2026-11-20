@@ -74,10 +74,7 @@ If your SQL Server runs elsewhere, update it before restoring or running migrati
 
 **Admin user:**
 
-| Field | Value |
-|-----|-----|
-| Email | `Admin@gmail.com` |
-| Password | `Admin#613` |
+A default admin user is created by the database seed. Change its password after the first login
 
 ### 3. JWT key
 
